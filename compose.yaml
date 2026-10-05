@@ -1,0 +1,51 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: guestbook-database
+    environment:
+      POSTGRES_USER: guestbook
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: guestbook
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U guestbook"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - guestbook
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: guestbook-applicaiton
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: guestbook
+      DB_USER: guestbook
+      DB_PASSWORD: ${DB_PASSWORD}
+      APP_HOST: 0.0.0.0
+      APP_PORT: 8000
+    ports:
+      - "8000:8000"
+    networks:
+      - guestbook
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  guestbook:
+    driver: bridge
