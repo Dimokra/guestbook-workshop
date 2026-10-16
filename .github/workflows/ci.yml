@@ -1,0 +1,21 @@
+name: CI
+
+on:
+    push:
+    pull_request:
+jobs:
+    check:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v7
+            - name: Uv downloading
+              uses: astral-sh/setup-uv@v6
+            - name: install dependencies    
+              run: uv sync
+            - name: Linter (ruff)
+              run: uv run ruff check .
+            - name: Tests (pytest)
+              run: uv run pytest
+              env:
+                GREETING: 'hici'
+                DATABASE_URL: "postgresql://ci:ci@localhost:5432/ci"    
