@@ -21,6 +21,7 @@ jobs:
                 DATABASE_URL: "postgresql://ci:ci@localhost:5432/ci"
                 DB_PASSWORD: 'ci'
 
+
     publish:
       needs: check
       if: github.ref == 'refs/heads/main'
@@ -30,6 +31,14 @@ jobs:
         packages: write
       steps: 
         - uses: actions/checkout@v5
+        - name: Extract Docker metadata
+          id: meta
+          uses: docker/metadata-action@v5
+          with:
+            images: ghcr.io/${{github.repository}}
+            tags: |
+              type=raw,value=latest
+              type=ref,event=branch 
         - name: Setting up builder docker
           uses: docker/setup-buildx-action@v4
         - name: Enter to registry GHCR
@@ -43,4 +52,4 @@ jobs:
           with:
             context: .
             push: true
-            tags: ghcr.io/${{github.repository}}:latest
+            tags: ${{steps.meta.outputs.tags}}
